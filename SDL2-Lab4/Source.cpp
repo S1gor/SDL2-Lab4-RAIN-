@@ -4,8 +4,8 @@
 SDL_Window* win = NULL;
 SDL_Renderer* ren = NULL;
 
-const int win_width = 1240;
-const int win_height = 620;
+const int win_width = 1500;
+const int win_height = 750;
 
 void DeInit(int error)
 {
@@ -22,7 +22,7 @@ void Init()
 		DeInit(1);
 	}
 
-	win = SDL_CreateWindow("s1mple", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_width, win_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	win = SDL_CreateWindow("Rain", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_width, win_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 	if (win == NULL)
 	{
 		printf("Не удалось создать окно!");
@@ -37,36 +37,71 @@ void Init()
 	}
 }
 
+struct Rain
+{
+	float x1, y1, x2, y2;
+	float speed = 5;
+};
+
+void coords(Rain* mas, int i)
+{
+	mas[i].x1 = rand() % win_width;
+	mas[i].y1 = rand() % win_height;
+	mas[i].x2 = mas[i].x1 - 100 * sin(2.7);
+	mas[i].y2 = mas[i].y1 - 100 * sin(2.7);
+}
+
+void drawLine(Rain* mas, int i)
+{
+	SDL_SetRenderDrawColor(ren, 0, 0, rand() % 255, 255);
+	SDL_RenderDrawLine(ren, mas[i].x1, mas[i].y1, mas[i].x2, mas[i].y2);
+}
+
+void speedRain(Rain* mas, int i)
+{
+	mas[i].y1 = mas[i].y1 + 50;
+	mas[i].y2 = mas[i].y2 + 50 * 0.9;
+
+	if (mas[i].y1 > win_height)
+	{
+		mas[i].y1 = rand() % win_height;
+		mas[i].y2 = mas[i].y1 - 50* cos(0.5);
+	}
+}
+
 int main(int args, char* argv[])
 {
 	Init();
-	
-	SDL_SetRenderDrawColor(ren, 170, 170, 170, 255);
+
+	const int MAX = 100;
+	Rain mas[MAX];
+
+	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 	SDL_RenderClear(ren);
-
+	
 	srand(time(NULL));
-	for (int i = rand() % 10; i < win_height; i += rand() % 20)
+
+	for (int i = 0; i < 100; i++)
 	{
-		if (i % 2 == 0)
-		{
-			SDL_SetRenderDrawColor(ren, 225, 225, 225, 255);
-			SDL_RenderClear(ren);
-		}
+		coords(mas, i);
+		drawLine(mas, i);
+	}
+	while (true)
+	{
+		SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+		SDL_RenderClear(ren);
 
-		for (int j = rand() % 10; j < win_width; j += rand() % 80)
+		for (int i = 0; i < 100; i++)
 		{
-			SDL_SetRenderDrawColor(ren, 0, 0, 200, 255);
-			SDL_RenderDrawLine(ren, j, i, j + 50, i + 50);
-			SDL_RenderDrawLine(ren, j, i, j + 55, i + 55);
-			SDL_RenderDrawLine(ren, j, i, j + 60, i + 60);
-
+			drawLine(mas, i);
 			SDL_RenderPresent(ren);
+			speedRain(mas, i);
 		}
-		SDL_Delay(20);
 	}
 
+	SDL_Delay(10);
+	
 
-	SDL_Delay(1000);
 
 	DeInit(0);
 	return 0;
